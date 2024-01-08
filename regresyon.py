@@ -222,9 +222,14 @@ def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
 
     # Plotting
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(results_df.index.values, results_df["Real Values"], label="Real Values", marker='o')
-    ax.plot(results_df.index.values, results_df["Predicted Values"], label="Predicted Values", marker='o')
-    ax.fill_between(results_df.index.values, results_df["Lower Bound"], results_df["Upper Bound"], color='gray', alpha=0.3, label="Confidence Interval")
+    
+    # Use np.arange for one-dimensional x-axis values
+    x_values = np.arange(len(results_df))
+    
+    ax.plot(x_values, results_df["Real Values"], label="Real Values", marker='o')
+    ax.plot(x_values, results_df["Predicted Values"], label="Predicted Values", marker='o')
+    ax.fill_between(x_values, results_df["Lower Bound"], results_df["Upper Bound"], color='gray', alpha=0.3, label="Confidence Interval")
+    
     ax.set_xlabel("Observation Indices")
     ax.set_ylabel("Values")
     ax.set_title("Predicted Values and Confidence Interval")
