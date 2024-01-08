@@ -334,16 +334,9 @@ elif selected_option == "Veritabanı":
                 # Tahmin sonuçlarını gösterin
                 st.write("Tahmin Değeri:", prediction)
 
-
-
-               
-
             else:
                 st.warning("Lütfen analiz yapmak için geçerli bir dosya seçin.")
 
 
     # Veritabanı bağlantısını kapatma
     conn.close()
-
-
-
