@@ -186,7 +186,7 @@ elif selected_option == "Excel Dosyası":
         max_degree = st.slider("Polinom Derecesi Seç", min_value=1, max_value=5, value=2)
         # Measure the start time
         start_time = time.time()
-        top_10_combinations = find_best_polynomial_combinations(X, y,max_degree , top_n=1, max_terms=20)
+        top_10_combinations = reg.find_best_polynomial_combinations(X, y,max_degree , top_n=1, max_terms=20)
         # Measure the end time
         end_time = time.time()
 
@@ -206,8 +206,8 @@ elif selected_option == "Excel Dosyası":
             if top_10_combinations:
                 combo, _ = top_10_combinations[0]  # Assuming top_10_combinations now contains only one combination
                 # Generate Polynomial Model
-                _, _, _, y_pred = generate_polynomial_model(X, y, combo, max_degree)
-                lower_bound, upper_bound = calculate_bootstrap_ci(X, y)
+                _, _, _, y_pred = reg.generate_polynomial_model(X, y, combo, max_degree)
+                lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
 
 
                 
