@@ -5,6 +5,7 @@ import streamlit as st
 import os
 import sqlite3
 import regresyon as reg
+import matplotlib.pyplot as plt
 def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
     # Gerçek değerleri ve tahminleri içeren bir DataFrame oluşturun
     results_df = pd.DataFrame({
