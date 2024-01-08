@@ -142,6 +142,9 @@ if selected_option == "CSV Dosyası":
 elif selected_option == "Excel Dosyası":
     uploaded_file = st.file_uploader("Lütfen bir Excel dosyası seçin", type=["xls", "xlsx"])
 
+    dependent_variable = None
+    selected_independent_variables = None
+
     if uploaded_file is not None:
         data = pd.read_excel(uploaded_file)
 
@@ -156,6 +159,7 @@ elif selected_option == "Excel Dosyası":
 
     if not dependent_variable or not selected_independent_variables:
         st.warning("Lütfen bağımlı ve bağımsız değişkenleri seçin.")
+   
     else:
         y = data[dependent_variable]
         X = data[selected_independent_variables]
