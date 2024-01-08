@@ -5,6 +5,35 @@ import streamlit as st
 import os
 import sqlite3
 import regresyon as reg
+def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
+    # Create a DataFrame containing real values, predictions, and confidence intervals
+    results_df = pd.DataFrame({
+        "Real Values": y.values,
+        "Predicted Values": y_pred,
+        "Lower Bound": lower_bound,
+        "Upper Bound": upper_bound
+    })
+
+    # Reset the index
+    results_df.reset_index(drop=True, inplace=True)
+
+    # Plotting
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Use np.arange for one-dimensional x-axis values
+    x_values = np.arange(len(results_df))
+    
+    ax.plot(x_values, results_df["Real Values"], label="Real Values", marker='o')
+    ax.plot(x_values, results_df["Predicted Values"], label="Predicted Values", marker='o')
+    ax.fill_between(x_values, results_df["Lower Bound"], results_df["Upper Bound"], color='gray', alpha=0.3, label="Confidence Interval")
+    
+    ax.set_xlabel("Observation Indices")
+    ax.set_ylabel("Values")
+    ax.set_title("Predicted Values and Confidence Interval")
+    ax.legend()
+
+    # Display the plot in Streamlit
+    st.pyplot(fig)
 combo = None
 max_degree = None
 X = None 
