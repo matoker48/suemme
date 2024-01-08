@@ -6,32 +6,29 @@ import os
 import sqlite3
 import regresyon as reg
 def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
-    # Create a DataFrame containing real values, predictions, and confidence intervals
+    # Gerçek değerleri ve tahminleri içeren bir DataFrame oluşturun
     results_df = pd.DataFrame({
-        "Real Values": y.values,
-        "Predicted Values": y_pred,
-        "Lower Bound": lower_bound,
-        "Upper Bound": upper_bound
+        "Gerçek Değerler": y.values,
+        "Tahmin Değerleri": y_pred,
+        "Alt Sınır": lower_bound,
+        "Üst Sınır": upper_bound
     })
 
-    # Reset the index
+    # İndex'i sıfırla
     results_df.reset_index(drop=True, inplace=True)
 
-    # Plotting
+    # Grafik çizimi
     fig, ax = plt.subplots(figsize=(10, 6))
-    
-    # Use np.arange for one-dimensional x-axis values
-    x_values = np.arange(len(results_df))
-    
-    ax.plot(x_values, results_df["Real Values"], label="Real Values", marker='o')
-    ax.plot(x_values, results_df["Predicted Values"], label="Predicted Values", marker='o')
-    ax.fill_between(x_values, results_df["Lower Bound"], results_df["Upper Bound"], color='gray', alpha=0.3, label="Confidence Interval")
-    
-    ax.set_xlabel("Observation Indices")
-    ax.set_ylabel("Values")
-    ax.set_title("Predicted Values and Confidence Interval")
+    ax.plot(results_df.index, results_df["Gerçek Değerler"], label="Gerçek Değerler", marker='o')
+    ax.plot(results_df.index, results_df["Tahmin Değerleri"], label="Tahmin Değerleri", marker='o')
+    ax.fill_between(results_df.index, results_df["Alt Sınır"], results_df["Üst Sınır"], color='gray', alpha=0.3, label="Güven Aralığı")
+    ax.set_xlabel("Gözlem İndexleri")
+    ax.set_ylabel("Değerler")
+    ax.set_title("Tahmin Değerleri ve Güven Aralığı")
     ax.legend()
 
+    # Streamlit üzerinde grafik gösterimi
+    st.pyplot(fig)
     # Display the plot in Streamlit
     st.pyplot(fig)
 combo = None
