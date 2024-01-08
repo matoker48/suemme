@@ -325,7 +325,7 @@ elif selected_option == "Veritabanı":
                 # Tahmin yapın
                 prediction = reg.make_prediction(X, y, combo, max_degree, df_s)
                 # Fonksiyonunuzu çağırın ve grafiği çizin
-                #reg.plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
+                plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
 
                 # Tahmin sonuçlarını gösterin
                 st.write("Tahmin Değeri:", prediction)
