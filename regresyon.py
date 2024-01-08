@@ -10,7 +10,6 @@ import numpy as np
 from scipy import stats
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-import matplotlib.pyplot as plt
 import streamlit as st
 
 #---------------------------------------------------------------------------
