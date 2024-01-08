@@ -30,8 +30,6 @@ def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
 
     # Streamlit üzerinde grafik gösterimi
     st.pyplot(fig)
-    # Display the plot in Streamlit
-    st.pyplot(fig)
 combo = None
 max_degree = None
 X = None 
