@@ -224,7 +224,7 @@ elif selected_option == "Excel Dosyası":
                 
                 st.dataframe(results_df)
                 # Tahmin yapın
-                prediction = make_prediction(X, y, combo, max_degree, df_s)
+                prediction = reg.make_prediction(X, y, combo, max_degree, df_s)
                 # Fonksiyonunuzu çağırın ve grafiği çizin
                 plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
 
