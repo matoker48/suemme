@@ -99,7 +99,7 @@ if selected_option == "CSV Dosyası":
 
             if st.button("Analizi Gerçekleştir"):
                 # Polynomial Regression Analysis
-                st.header("En İyi Kombinasyonlar")
+                st.header("Cıktı:")
 
 
 
@@ -192,7 +192,7 @@ elif selected_option == "Excel Dosyası":
 
         if st.button("Analizi Gerçekleştir"):
             # Polynomial Regression Analysis
-            st.header("En İyi Kombinasyonlar")
+            st.header("Çıktı")
 
 
 
@@ -296,7 +296,7 @@ elif selected_option == "Veritabanı":
 
         if st.button("Analizi Gerçekleştir"):
             # Polynomial Regression Analysis
-            st.header("En İyi Kombinasyonlar")
+            st.header("Çıktı")
 
 
 
