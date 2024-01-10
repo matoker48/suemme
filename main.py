@@ -6,6 +6,30 @@ import os
 import sqlite3
 import regresyon as reg  # Import your regresyon module here
 import ml  # Import your machine learning model here
+def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
+    # Gerçek değerleri ve tahminleri içeren bir DataFrame oluşturun
+    results_df = pd.DataFrame({
+        "Gerçek Değerler": y.values,
+        "Tahmin Değerleri": y_pred,
+        "Alt Sınır": lower_bound,
+        "Üst Sınır": upper_bound
+    })
+
+    # İndex'i sıfırla
+    results_df.reset_index(drop=True, inplace=True)
+
+    # Grafik çizimi
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(results_df.index, results_df["Gerçek Değerler"], label="Gerçek Değerler", marker='o')
+    ax.plot(results_df.index, results_df["Tahmin Değerleri"], label="Tahmin Değerleri", marker='o')
+    ax.fill_between(results_df.index, results_df["Alt Sınır"], results_df["Üst Sınır"], color='gray', alpha=0.3, label="Güven Aralığı")
+    ax.set_xlabel("Gözlem İndexleri")
+    ax.set_ylabel("Değerler")
+    ax.set_title("Tahmin Değerleri ve Güven Aralığı")
+    ax.legend()
+
+    # Streamlit üzerinde grafik gösterimi
+    st.pyplot(fig)
 
 def load_data_from_csv(file):
     data = pd.read_csv(file, sep=';')
@@ -60,7 +84,7 @@ def perform_svr_analysis(X, y, df_s, scaler):
     st.dataframe(results_df)
 
     prediction = ml.predict_with(svr,df_s)
-    reg.plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
+    plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
 
     st.write("Tahmin Değeri:", prediction)
 
@@ -85,7 +109,7 @@ def perform_random_forest_analysis(X, y, df_s, scaler):
     st.dataframe(results_df)
 
     prediction = ml.predict_with(rf,df_s)
-    reg.plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
+    plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
 
     st.write("Tahmin Değeri:", prediction)
 
@@ -110,7 +134,7 @@ def perform_decision_tree_analysis(X, y, df_s, scaler):
     st.dataframe(results_df)
 
     prediction = ml.predict_with(dt,df_s)
-    reg.plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
+    plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
 
     st.write("Tahmin Değeri:", prediction)
 
@@ -137,7 +161,7 @@ def perform_regression_analysis(X, y, max_degree, df_s, scaler):
         st.dataframe(results_df)
 
         prediction = reg.make_prediction(X, y, combo, max_degree, df_s)
-        reg.plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
+        plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound)
 
         st.write("Tahmin Değeri:", prediction)
     else:
