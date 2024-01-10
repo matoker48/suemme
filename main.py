@@ -6,6 +6,8 @@ import os
 import sqlite3
 import regresyon as reg  # Import your regresyon module here
 import ml  # Import your machine learning model here
+import matplotlib.pyplot as plt
+
 def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
     # Gerçek değerleri ve tahminleri içeren bir DataFrame oluşturun
     results_df = pd.DataFrame({
