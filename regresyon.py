@@ -11,6 +11,7 @@ from scipy import stats
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import streamlit as st
+import matplotlib.pyplot as plt
 
 #---------------------------------------------------------------------------
 def calculate_r_squared(y, y_pred):
