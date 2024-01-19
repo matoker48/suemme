@@ -24,7 +24,7 @@ existing_table_names = [table[0] for table in existing_tables]
 selected_table = st.selectbox("Tablo Seçimi:", existing_table_names, index=0)
 
 # CSV dosyası yükleme
-uploaded_file = st.file_uploader("CSV Dosyasını Yükleyin", type=["csv"])
+uploaded_file = st.file_uploader("CSV Dosyasını Yükleyin", type=["csv", "xlsx"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file, sep=';')
