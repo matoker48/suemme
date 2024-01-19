@@ -4,6 +4,7 @@ from sklearn.preprocessing import StandardScaler
 import streamlit as st
 import os
 import sqlite3
+import matplotlib.pyplot as plt
 import regresyon as reg  # Import your regresyon module here
 import ml  # Import your machine learning model here
 
