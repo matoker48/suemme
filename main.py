@@ -266,7 +266,7 @@ def main():
                 df_s = get_user_input(selected_independent_variables)
 
                 max_degree = None
-                if regression_type == "Polynomial":
+                if regression_type == "Regresyon Analizi":
                     max_degree = st.slider("Polinom Derecesi Seç", min_value=1, max_value=3, value=2)
 
                 if st.button("Analizi Gerçekleştir"):
@@ -295,7 +295,7 @@ def main():
             df_s = get_user_input(selected_independent_variables)
 
             max_degree = None
-            if regression_type == "Polynomial":
+            if regression_type == "Regresyon Analizi":
                 max_degree = st.slider("Polinom Derecesi Seç", min_value=1, max_value=3, value=2)
 
 
