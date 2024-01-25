@@ -5,77 +5,103 @@ from sklearn.svm import SVR
 from sklearn.model_selection import cross_val_predict, KFold
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.utils.validation import check_is_fitted
+from sklearn.model_selection import GridSearchCV, train_test_split
+def calculate_k(observation_count):
+    if observation_count < 200:
+        result = 5
+    else:
+        result = observation_count // 40
+    
+    return int(result)
+def standardize(X):
+    # Standart scaler'ı oluştur
+    scaler = StandardScaler()
 
-def evaluate_random_forest(X, y, cv=5):
-    # Define KFold with specified number of splits
-    kf = KFold(n_splits=cv, shuffle=True, random_state=1234)
+    # Standartlaştır
+    standardized_X = scaler.fit_transform(X)
 
-    # Initialize Random Forest Regressor
-    rf = RandomForestRegressor(n_estimators=500, criterion="squared_error", max_depth=5)
-    # Fit the rf model on your training data
-    rf.fit(X, y)
+    # DataFrame'e çevir
+    standardized_X = pd.DataFrame(standardized_X, columns=X.columns)
 
-    # Check if the rf model is fitted
-    check_is_fitted(rf)
+    return standardized_X
 
-    # Cross-validated predictions
-    y_pred = cross_val_predict(rf, X, y, cv=kf)
+def train_random_forest(X_train, y_train, param_grid):
+    # Random Forest Regressor
+    rf = RandomForestRegressor()
+    c = calculate_k(len(X_train))
+    # GridSearchCV
+    grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=c, scoring='r2')
+    grid_search.fit(X_train, y_train)
 
-    # Calculate R2 score
-    r2 = r2_score(y, y_pred)
+    # En iyi parametreler
+    best_params = grid_search.best_params_
+    print("En iyi parametreler:", best_params)
 
-    # Calculate Mean Absolute Error (MAE)
-    mae = mean_absolute_error(y, y_pred)
+    # En iyi modeli seçme
+    best_rf = grid_search.best_estimator_
 
-    return rf, r2, mae, y_pred
+    # Train setinde R2 skoru
+    r2_train = r2_score(y_train, best_rf.predict(X_train))
+    print(f"Train setinde R2 Skoru: {r2_train}")
 
-def evaluate_decision_tree(X, y, cv=5):
-    # Define KFold with specified number of splits
-    kf = KFold(n_splits=cv, shuffle=True, random_state=1234)
+    return best_rf, r2_train
 
-    # Initialize Decision Tree Regressor
-    dt = DecisionTreeRegressor(max_depth=5)
-    # Fit the dt model on your training data
-    dt.fit(X, y)
+def train_decision_tree(X_train, y_train, param_grid):
+    # Decision Tree Regressor
+    dt = DecisionTreeRegressor()
+    c = calculate_k(len(X_train))
+    # GridSearchCV
+    grid_search = GridSearchCV(estimator=dt, param_grid=param_grid, cv=c, scoring='r2')
+    grid_search.fit(X_train, y_train)
 
-    # Check if the dt model is fitted
-    check_is_fitted(dt)
+    # En iyi parametreler
+    best_params = grid_search.best_params_
+    print("En iyi parametreler:", best_params)
 
-    # Cross-validated predictions
-    y_pred = cross_val_predict(dt, X, y, cv=kf)
+    # En iyi modeli seçme
+    best_dt = grid_search.best_estimator_
 
-    # Calculate R2 score
-    r2 = r2_score(y, y_pred)
+    # Train setinde R2 skoru
+    r2_train = r2_score(y_train, best_dt.predict(X_train))
+    print(f"Train setinde R2 Skoru: {r2_train}")
 
-    # Calculate Mean Absolute Error (MAE)
-    mae = mean_absolute_error(y, y_pred)
+    return best_dt, r2_train
 
-    return dt, r2, mae, y_pred
+def train_svr(X_train, y_train, param_grid):
+    # SVR Regressor
+    svr = SVR()
+    c = calculate_k(len(X_train))
+    # GridSearchCV
+    grid_search = GridSearchCV(estimator=svr, param_grid=param_grid, cv=c, scoring='r2')
+    grid_search.fit(X_train, y_train)
 
-def evaluate_svr(X, y, cv=5):
-    # Define KFold with specified number of splits
-    kf = KFold(n_splits=cv, shuffle=True, random_state=1234)
+    # En iyi parametreler
+    best_params = grid_search.best_params_
+    print("En iyi parametreler:", best_params)
 
-    # Initialize Support Vector Regressor with a linear kernel
-    svr = SVR(kernel='linear')
-    # Fit the SVR model on your training data
-    svr.fit(X, y)
+    # En iyi modeli seçme
+    best_svr = grid_search.best_estimator_
 
-    # Check if the SVR model is fitted
-    check_is_fitted(svr)
+    # Train setinde R2 skoru
+    r2_train = r2_score(y_train, best_svr.predict(X_train))
+    print(f"Train setinde R2 Skoru: {r2_train}")
 
-    X_scaled = X
+    return best_svr, r2_train
 
-    # Cross-validated predictions
-    y_pred = cross_val_predict(svr, X_scaled, y, cv=kf)
+def evaluate_svr(model, X_val, y_val, df_s):
+    # Validation setinde R2 skoru
+    r2_val = r2_score(y_val, model.predict(X_val))
+    print(f"Validation setinde R2 Skoru: {r2_val}")
 
-    # Calculate R2 score
-    r2 = r2_score(y, y_pred)
+    # Validation setinde MAE skoru
+    mae_val = mean_absolute_error(y_val, model.predict(X_val))
+    print(f"Validation setinde MAE: {mae_val}")
 
-    # Calculate Mean Absolute Error (MAE)
-    mae = mean_absolute_error(y, y_pred)
+    # Test seti için y_pred hesapla
+    y_pred_test = model.predict(X_val)
+    y_pred_df = model.predict(df_s)
 
-    return svr, r2, mae, y_pred
+    return r2_val, mae_val, y_pred_test, y_pred_df
 
 def predict_with(model, user_input):
     check_is_fitted(model)
