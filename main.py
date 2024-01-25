@@ -213,13 +213,13 @@ def perform_regression_analysis(X, y, max_degree, df_s):
 
 def choice_the_model(regression_type,X, y, max_degree, df_s):
     # Choose the appropriate regression type based on the user's selection
-    if regression_type == "SVR":
+    if regression_type == "Destek vektör Regresyonu":
         perform_svr_analysis(X, y, df_s)
-    elif regression_type == "Random Forest":
+    elif regression_type == "Rassal Orman":
         perform_random_forest_analysis(X, y, df_s)
-    elif regression_type == "Decision Tree":
+    elif regression_type == "Karar Ağacı":
         perform_decision_tree_analysis(X, y, df_s)
-    elif regression_type == "Polynomial":
+    elif regression_type == "Regresyon Analizi":
         perform_regression_analysis(X, y, max_degree, df_s)
 
 def main():
