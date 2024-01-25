@@ -10,8 +10,8 @@ import numpy as np
 from scipy import stats
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-import streamlit as st
 import matplotlib.pyplot as plt
+import streamlit as st
 
 #---------------------------------------------------------------------------
 def calculate_r_squared(y, y_pred):
@@ -59,7 +59,7 @@ def calculate_vif(X):
     vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
     return vif_data
 #--------------------------------------------------------------------------------------------------
-def find_best_polynomial_combinations(X, y,max_degree , top_n, max_terms):
+def find_best_polynomial_combinations(X, y, max_degree, top_n, max_terms):
     poly = PolynomialFeatures(degree=max_degree)
     X_poly = poly.fit_transform(X)
 
@@ -134,17 +134,8 @@ def generate_polynomial_model(X, y, indices, degree):
     # Tahminleri alın
     y_pred = cross_val_predict(model, selected_X_poly, y, cv=cv)
 
-    # Tahmin değerlerini içeren DataFrame'i oluşturun
-    results_df = pd.DataFrame({
-        "Bağımlı Değişken": y.values,
-        "Tahmin Değerleri": y_pred,
-    })
-
-    # Bağımsız değişkenleri dinamik olarak DataFrame'e ekleyin
-    for col in X.columns:
-        results_df[f"{col}"] = X[col].values
-
     return selected_terms, r2, mae, y_pred
+
 
 
 def make_prediction(X, y, indices, degree, user_input):
@@ -186,27 +177,31 @@ def make_prediction(X, y, indices, degree, user_input):
 
 
 def calculate_bootstrap_ci(X, y, n_iterations=1000):
-
     bootstrap_predictions = []
 
     for _ in range(n_iterations):
-        indices = np.random.choice(len(X), len(X), replace=True)  # Rastgele örnekleme yapma
-        
-        # İndekslerin X DataFrame'inin sütun indeksleri içinde olduğundan emin olun
-        if set(indices) <= set(X.index):
-            X_bootstrap = X.iloc[indices]
-            y_bootstrap = y[indices]
+        indices = np.random.choice(len(X), len(X), replace=True)
+        X_bootstrap = X.iloc[indices]
+        y_bootstrap = y.iloc[indices]
 
-            model_bootstrap = LinearRegression()
-            model_bootstrap.fit(X_bootstrap, y_bootstrap)
+        model_bootstrap = LinearRegression()
+        model_bootstrap.fit(X_bootstrap, y_bootstrap)
 
-            bootstrap_predictions.append(model_bootstrap.predict(X_bootstrap))
+        # NaN değer içeren sütunları çıkar
+        X_bootstrap_cleaned = X_bootstrap.dropna(axis=1)
+
+        # Eğer örneklemleme sonucunda tüm sütunlar NaN olmuşsa, o örneği atla
+        if X_bootstrap_cleaned.shape[1] == 0:
+            continue
+
+        bootstrap_predictions.append(model_bootstrap.predict(X_bootstrap_cleaned))
 
     # Bootstrapping sonuçları üzerinden güven aralığını hesaplama
     lower_bound = np.percentile(bootstrap_predictions, 5, axis=0)
     upper_bound = np.percentile(bootstrap_predictions, 95, axis=0)
 
     return lower_bound, upper_bound
+
 
 def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
     # Gerçek değerleri ve tahminleri içeren bir DataFrame oluşturun
