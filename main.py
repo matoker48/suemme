@@ -217,7 +217,7 @@ def choice_the_model(regression_type,X, y, max_degree, df_s):
         perform_svr_analysis(X, y, df_s)
     elif regression_type == "Rassal Orman":
         perform_random_forest_analysis(X, y, df_s)
-    elif regression_type == "Karar Ağacı":
+    elif regression_type == "Karar Agacı":
         perform_decision_tree_analysis(X, y, df_s)
     elif regression_type == "Regresyon Analizi":
         perform_regression_analysis(X, y, max_degree, df_s)
@@ -225,7 +225,7 @@ def choice_the_model(regression_type,X, y, max_degree, df_s):
 def main():
     st.title('SAM Analiz Uygulaması')
     # Add a selection box for regression type
-    regression_type = st.selectbox("Bir Model Seçiniz:", ["Regresyon Analizi", "Destek vektör Regresyonu", "Rassal Orman", "Karar Ağacı"])
+    regression_type = st.selectbox("Bir Model Seçiniz:", ["Regresyon Analizi", "Destek vektör Regresyonu", "Rassal Orman", "Karar Agacı"])
 
     selected_option = st.radio("Veri Kaynağını Seçin:", ["CSV Dosyası", "Excel Dosyası", "Veritabanı"])
 
