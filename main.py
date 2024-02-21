@@ -7,6 +7,11 @@ import sqlite3
 import regresyon as reg  # Import your regresyon module here
 import ml  # Import your machine learning model here
 from sklearn.model_selection import GridSearchCV, train_test_split
+import pickle
+import json
+import datetime
+
+
 
 def load_data_from_csv(file):
     data = pd.read_csv(file, sep=';')
@@ -58,10 +63,10 @@ def perform_svr_analysis(X, y, df_s):
     }
 
     # SVR modelini eğitme
-    best_svr, r2_train = ml.train_svr(X_trains, y_train, param_grid)
+    model, r2_train = ml.train_svr(X_trains, y_train, param_grid)
 
     # SVR modelini değerlendirme
-    r2_val, mae_val, y_pred_val, y_pred_df = ml.evaluate_svr(best_svr, X_vals, y_val, df_s)
+    r2_val, mae_val, y_pred_val, y_pred_df = ml.evaluate_svr(model, X_vals, y_val, df_s)
     #svr, r2, mae, y_pred = ml.evaluate_svr(X, y, cv=5)
     lower_bound, upper_bound = reg.calculate_bootstrap_ci(X_vals, y_val)
 
@@ -81,13 +86,14 @@ def perform_svr_analysis(X, y, df_s):
     st.header('Sonuç:')
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    st.write("Tahmin Değeri:", y_pred_df)
+    st.write("Tahmin Değeri:", f"{y_pred_df[0]:.4f}")
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.dataframe(results_df)
-    reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
+    with st.expander("Detaylar"):
+        st.dataframe(results_df)
+        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
 
 
-
+    return model
 # Add Random Forest function call here
 def perform_random_forest_analysis(X, y, df_s):
     st.write("Performing Random Forest Analysis")
@@ -102,8 +108,8 @@ def perform_random_forest_analysis(X, y, df_s):
         'min_samples_leaf': [1, 2, 4]
     }
 
-    best_rf_model, r2_train_rf = ml.train_random_forest(X_trains, y_train, param_grid_rf)
-    r2_val, mae_val, y_pred_val, y_pred_df = ml.evaluate_svr(best_rf_model, X_vals, y_val, df_s)
+    model, r2_train_rf = ml.train_random_forest(X_trains, y_train, param_grid_rf)
+    r2_val, mae_val, y_pred_val, y_pred_df = ml.evaluate_svr(model, X_vals, y_val, df_s)
     lower_bound, upper_bound = reg.calculate_bootstrap_ci(X_vals, y_val)
 
     results_df = pd.DataFrame({
@@ -120,13 +126,14 @@ def perform_random_forest_analysis(X, y, df_s):
     st.header('Sonuç:')
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    st.write("Tahmin Değeri:", y_pred_df)
+    st.write("Tahmin Değeri:", f"{y_pred_df[0]:.4f}")
     st.markdown("<hr>", unsafe_allow_html=True)
+    with st.expander("Detaylar"):
 
-    st.dataframe(results_df)
-    reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
+        st.dataframe(results_df)
+        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
 
-    
+    return model   
 
 # Add Decision Tree function call here
 def perform_decision_tree_analysis(X, y, df_s):
@@ -139,10 +146,10 @@ def perform_decision_tree_analysis(X, y, df_s):
     'min_samples_leaf': [1, 2, 4]
 }
     # dt modelini eğitme
-    best_dt, r2_train = ml.train_decision_tree(X_trains, y_train, param_grid_dt)
+    model, r2_train = ml.train_decision_tree(X_trains, y_train, param_grid_dt)
 
     # dt modelini değerlendirme
-    r2_val, mae_val, y_pred_val, y_pred_df = ml.evaluate_svr(best_dt, X_vals, y_val, df_s)
+    r2_val, mae_val, y_pred_val, y_pred_df = ml.evaluate_svr(model, X_vals, y_val, df_s)
     lower_bound, upper_bound = reg.calculate_bootstrap_ci(X_vals, y_val)
 
     results_df = pd.DataFrame({
@@ -157,17 +164,17 @@ def perform_decision_tree_analysis(X, y, df_s):
 
     
 
-    #prediction = ml.predict_with(dt,df_s)
     st.header('Sonuç:')
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    st.write("Tahmin Değeri:", y_pred_df)
+    st.write("Tahmin Değeri:", f"{y_pred_df[0]:.4f}")
     st.markdown("<hr>", unsafe_allow_html=True)
+    with st.expander("Detaylar"):
 
-    st.dataframe(results_df)
-    reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
+        st.dataframe(results_df)
+        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
 
-    
+    return model
 
 def perform_regression_analysis(X, y, max_degree, df_s):
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -176,8 +183,10 @@ def perform_regression_analysis(X, y, max_degree, df_s):
     top_10_combinations = reg.find_best_polynomial_combinations(X_trains, y_train, max_degree, top_n=1, max_terms=20)
 
     if top_10_combinations:
+        global combo
         combo, _ = top_10_combinations[0]
-        _, _, _, y_pred = reg.generate_polynomial_model(X_train, y_train, combo, max_degree)
+        termss, r2, mae, y_pred,coeff,intcept,model = reg.generate_polynomial_model(X_train, y_train, combo, max_degree)
+        math_model = reg.generate_math_model(termss, coeff, intcept)
         lower_bound, upper_bound = reg.calculate_bootstrap_ci(X_val, y_val)
         y_pred_val = reg.make_prediction(X_trains, y_train, combo, max_degree, X_vals)
         results_df = pd.DataFrame({
@@ -193,39 +202,115 @@ def perform_regression_analysis(X, y, max_degree, df_s):
         
         
         prediction = reg.make_prediction(X_trains, y_train, combo, max_degree, df_ss)
+        
+
         st.header('Sonuç:')
-
+        st.markdown("<hr>", unsafe_allow_html=True)
+        st.write("Tahmin Değeri:", f"{prediction[0]:.4f}")
         st.markdown("<hr>", unsafe_allow_html=True)
 
-        st.write("Tahmin Değeri:", prediction[0])
-        st.markdown("<hr>", unsafe_allow_html=True)
+        with st.expander("Detaylar"):
+            st.write("R$^2$:", f"{r2:.4f}")
+            st.markdown("<hr>", unsafe_allow_html=True)
 
-        st.dataframe(results_df)
-        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
+            st.write("Mean Absolute Error:",f"{mae:.4f}" )
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.write("Regresyon Modeli:" )
+            st.write(math_model)
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.dataframe(results_df)
+            reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
+
 
 
     else:
         st.warning("Lütfen analiz yapmak için geçerli bir dosya seçin.")
-
     end_time = time.time()
     elapsed_time = end_time - start_time
     st.write(f"Elapsed Time: {elapsed_time} seconds")
+    return model
 
 def choice_the_model(regression_type,X, y, max_degree, df_s):
     # Choose the appropriate regression type based on the user's selection
-    if regression_type == "Destek vektör Regresyonu":
-        perform_svr_analysis(X, y, df_s)
-    elif regression_type == "Rassal Orman":
-        perform_random_forest_analysis(X, y, df_s)
-    elif regression_type == "Karar Agacı":
-        perform_decision_tree_analysis(X, y, df_s)
-    elif regression_type == "Regresyon Analizi":
-        perform_regression_analysis(X, y, max_degree, df_s)
+    if regression_type == "SVR":
+        model = perform_svr_analysis(X, y, df_s)
+    elif regression_type == "Random Forest":
+        model = perform_random_forest_analysis(X, y, df_s)
+    elif regression_type == "Decision Tree":
+        model = perform_decision_tree_analysis(X, y, df_s)
+    elif regression_type == "Polynomial":
+       model = perform_regression_analysis(X, y, max_degree, df_s)
+
+    return model
+
+def perform_analysis_and_update_session_state(regression_type, X, y, max_degree, df_s):
+    # Access session state or initialize it if not exists
+    session_state = st.session_state
+    session_state.modell = choice_the_model(regression_type, X, y, max_degree, df_s)
+
+def init_session_state():
+    if "buton1_tiklandi" not in st.session_state:
+        st.session_state.buton1_tiklandi = False
+    if "buton2_tiklandi" not in st.session_state:
+        st.session_state.buton2_tiklandi = False
+
+init_session_state()
+
+
+def kaydet_ve_ekle(model, model_adi, bagimli_degisken, bagimsiz_degiskenler, model_tipi):
+    """
+    Eğitilmiş regresyon modelini kaydeder ve veritabanına ekler.
+
+    Parametreler:
+        model: Eğitilmiş regresyon modeli.
+        model_adi: Modelin adı.
+        bagimli_degisken: Bağımlı değişkenin adı.
+        bagimsiz_degiskenler: Bağımsız değişkenlerin bir listesi.
+        model_tipi: Regresyon modelinin tipi.
+    """
+
+    # Kayıt dosyasına kaydetme
+    with open(f"records/{model_adi}.pkl", "wb") as f:
+        pickle.dump(model, f)
+
+    # Bağımsız değişkenleri JSON'a dönüştürme
+    json_str = json.dumps(bagimsiz_degiskenler)
+
+    # Veritabanı bağlantısı
+    con = sqlite3.connect(f"models/{model_adi}.db")
+    cursor = con.cursor()
+
+    # Veritabanı oluşturma
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS model_info (
+            model_adi TEXT NOT NULL,
+            bagimli_degisken TEXT NOT NULL,
+            bagimsiz_degiskenler_json TEXT NOT NULL,
+            model_tipi TEXT NOT NULL,
+            tarih TEXT NOT NULL,
+            dosya_adi TEXT NOT NULL
+        )
+    """)
+
+    # Veritabanına ekleme
+    cursor.execute("""
+        INSERT INTO model_info (model_adi, bagimli_degisken, bagimsiz_degiskenler_json, model_tipi, tarih, dosya_adi)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (model_adi, bagimli_degisken, json_str, model_tipi, datetime.datetime.now().strftime("%Y-%m-%d"), f"{model_adi}.pkl"))
+    con.commit()
+    con.close()
+
+    # Mesaj
+    st.success(f"Model başarıyla kaydedildi: {model_adi}.pkl")
+    st.success(f"Veritabanına başarıyla eklendi: {model_adi}")
+
+
 
 def main():
+
     st.title('SAM Analiz Uygulaması')
     # Add a selection box for regression type
-    regression_type = st.selectbox("Bir Model Seçiniz:", ["Regresyon Analizi", "Destek vektör Regresyonu", "Rassal Orman", "Karar Agacı"])
+    regression_type = st.selectbox("Bir Model Seçiniz:", ["Polynomial", "SVR", "Random Forest", "Decision Tree"])
 
     selected_option = st.radio("Veri Kaynağını Seçin:", ["CSV Dosyası", "Excel Dosyası", "Veritabanı"])
 
@@ -245,10 +330,34 @@ def main():
                 df_s = get_user_input(selected_independent_variables)
 
                 max_degree = None
-                if regression_type == "Regresyon Analizi":
+                if regression_type == "Polynomial":
                     max_degree = st.slider("Polinom Derecesi Seç", min_value=1, max_value=3, value=2)
-                if st.button("Analizi Gerçekleştir"):
-                    choice_the_model(regression_type,X, y, max_degree, df_s)
+
+                if st.button("Modeli Eğit"):
+
+                    perform_analysis_and_update_session_state(regression_type, X, y, max_degree, df_s)
+                    st.session_state.buton1_tiklandi = True
+
+                custom_model_adi = st.text_input("")
+                if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
+                    st.session_state.buton2_tiklandi = True
+                    modell = st.session_state.modell
+                    # Check if modell is not None before accessing its attributes
+                    if modell is not None:
+                        tarih = datetime.datetime.now().strftime("%Y-%m-%d")
+                        model_adi = custom_model_adi + "_"+ tarih
+                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                        st.session_state.buton1_tiklandi = False
+                    else:
+                        st.warning("Modell is not defined. Run analysis first.")
+                        st.session_state.buton1_tiklandi = False
+                
+
+
+
+
+
+
 
     elif selected_option == "Excel Dosyası":
         uploaded_file = st.file_uploader("Lütfen bir Excel dosyası seçin", type=["xls", "xlsx"])
@@ -266,11 +375,27 @@ def main():
                 df_s = get_user_input(selected_independent_variables)
 
                 max_degree = None
-                if regression_type == "Regresyon Analizi":
+                if regression_type == "Polynomial":
                     max_degree = st.slider("Polinom Derecesi Seç", min_value=1, max_value=3, value=2)
 
-                if st.button("Analizi Gerçekleştir"):
-                    choice_the_model(regression_type,X, y, max_degree, df_s)
+                if st.button("Modeli Eğit"):
+
+                    perform_analysis_and_update_session_state(regression_type, X, y, max_degree, df_s)
+                    st.session_state.buton1_tiklandi = True
+                custom_model_adi = st.text_input("")
+                if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
+                    st.session_state.buton2_tiklandi = True
+                    modell = st.session_state.modell
+                    # Check if modell is not None before accessing its attributes
+                    if modell is not None:
+                        tarih = datetime.datetime.now().strftime("%Y-%m-%d")
+                        model_adi = custom_model_adi + "_"+ tarih
+                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                        st.session_state.buton1_tiklandi = False
+                    else:
+                        st.warning("Modell is not defined. Run analysis first.")
+                        st.session_state.buton1_tiklandi = False
+                
 
     elif selected_option == "Veritabanı":
         database_files = [f for f in os.listdir("databases/") if f.endswith(".db")]
@@ -295,14 +420,33 @@ def main():
             df_s = get_user_input(selected_independent_variables)
 
             max_degree = None
-            if regression_type == "Regresyon Analizi":
+            if regression_type == "Polynomial":
                 max_degree = st.slider("Polinom Derecesi Seç", min_value=1, max_value=3, value=2)
 
 
-            if st.button("Analizi Gerçekleştir"):
-                choice_the_model(regression_type,X, y, max_degree, df_s)
+            if st.button("Modeli Eğit"):
 
+                perform_analysis_and_update_session_state(regression_type, X, y, max_degree, df_s)
+                st.session_state.buton1_tiklandi = True
+
+
+            # Kullanıcıdan model adını girmesini iste
+            custom_model_adi = st.text_input("")
+            if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
+                st.session_state.buton2_tiklandi = True
+                modell = st.session_state.modell
+                # Check if modell is not None before accessing its attributes
+
+
+                if modell is not None:
+                    tarih = datetime.datetime.now().strftime("%Y-%m-%d")
+                    model_adi = custom_model_adi + "_"+ tarih
+                    kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                    st.session_state.buton1_tiklandi = False
+                    
+                else:
+                    st.warning("Modell is not defined. Run analysis first.")
+                    st.session_state.buton1_tiklandi = False
         conn.close()
-
 if __name__ == "__main__":
     main()
