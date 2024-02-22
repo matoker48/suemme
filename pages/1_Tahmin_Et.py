@@ -176,7 +176,7 @@ def main():
     models_dir = "models"
     records_dir = "records"
 
-    if not os.listdir(models_dir) and not os.listdir(records_dir):
+    if not os.listdir(models_dir) or not os.listdir(records_dir):
         st.error("Model eğitmediniz! Lütfen modelleri eğitin ve tekrar deneyin.")
         st.info("5 saniye sonra ana sayfaya yönlendirileceksiniz.")
         time.sleep(5)
