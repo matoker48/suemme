@@ -12,6 +12,8 @@ from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import matplotlib.pyplot as plt
 import streamlit as st
+import os
+import sqlite3
 
 #---------------------------------------------------------------------------
 def calculate_r_squared(y, y_pred):
@@ -122,21 +124,60 @@ def generate_polynomial_model(X, y, indices, degree):
     # Modeli oluşturun
     model = LinearRegression()
     cv = calculate_k(len(X))
-
+    model.fit(selected_X_poly, y)
     # Cross-validation ile R2 skorunu hesapla
     r2_scores = cross_val_score(model, selected_X_poly, y, scoring='r2', cv=KFold(n_splits=cv, shuffle=True, random_state=42))
     r2 = np.mean(r2_scores)
+    print(f"r2 score: {r2}")
 
     # Cross-validation ile MAE hesapla
     mae_scores = cross_val_score(model, selected_X_poly, y, scoring='neg_mean_absolute_error', cv=KFold(n_splits=cv, shuffle=True, random_state=42))
     mae = np.mean(-mae_scores)
+    print(f"Validation setinde MAE: {mae}")
+
+    coeff = model.coef_
+    intcept = model.intercept_
+
 
     # Tahminleri alın
     y_pred = cross_val_predict(model, selected_X_poly, y, cv=cv)
 
-    return selected_terms, r2, mae, y_pred
+    return selected_terms, r2, mae, y_pred,coeff,intcept,model
 
 
+
+
+
+def generate_math_model(terms, coefficients, intercept):
+  """
+  Verilen terimleri, katsayıları ve kesme noktası değerini kullanarak bir regresyon modeli oluşturur.
+
+  Args:
+      terms (list): Terimlerin bir listesini içeren Python listesi.
+      coefficients (list): Katsayıların bir listesini içeren Python listesi.
+      intercept (float): Kesme noktası değeri.
+
+  Returns:
+      str: Regresyon modelinin matematiksel gösterimi.
+  """
+
+  equation = "y = "
+  # Kesme noktası değerini ekleyin
+  if abs(intercept) > 1e-6:
+    if intercept > 0:
+      equation += " + "
+    equation += f"{intercept:.4f}"
+  # Katsayıları ve terimleri eşleştirin
+  for term, coefficient in zip(terms, coefficients):
+    # Katsayı sıfırdan farklıysa terimi ekleyin
+    if abs(coefficient) > 1e-6:
+      if coefficient > 0:
+        equation += " + "
+      equation += f"{coefficient:.4f} * {term}"
+
+
+
+  return equation
 
 def make_prediction(X, y, indices, degree, user_input):
     # Polynomial özellikleri ekleyin
@@ -227,3 +268,46 @@ def plot_prediction_with_ci(y, y_pred, lower_bound, upper_bound):
 
     # Streamlit üzerinde grafik gösterimi
     st.pyplot(fig)
+
+def klasor_islemleri(degisken_deger):
+    # Klasör adını belirt
+    klasor_ad = "combo"
+
+    # Klasörü oluştur
+    if not os.path.exists(klasor_ad):
+        os.makedirs(klasor_ad)
+
+    # Klasördeki tüm dosyaları sil
+    dosyalar = os.listdir(klasor_ad)
+    for dosya in dosyalar:
+        dosya_yolu = os.path.join(klasor_ad, dosya)
+        if os.path.isfile(dosya_yolu):
+            os.remove(dosya_yolu)
+
+    # SQLite veritabanı bağlantısı oluştur
+    veritabani_yolu = os.path.join(klasor_ad, "combo.db")
+    baglanti = sqlite3.connect(veritabani_yolu)
+    imlec = baglanti.cursor()
+
+    # Değişkeni kaydet
+    imlec.execute("CREATE TABLE IF NOT EXISTS combo (degisken TEXT)")
+    imlec.execute("INSERT INTO combo (degisken) VALUES (?)", (degisken_deger,))
+
+    # Veritabanı değişikliklerini kaydet ve bağlantıyı kapat
+    baglanti.commit()
+    baglanti.close()
+
+def degeri_oku_ve_yazdir():
+    # SQLite veritabanı bağlantısı oluştur
+    klasor_ad = "combo"
+    veritabani_yolu = os.path.join(klasor_ad, "combo.db")
+    baglanti = sqlite3.connect(veritabani_yolu)
+    imlec = baglanti.cursor()
+
+    # Değerleri oku
+    imlec.execute("SELECT * FROM combo")
+    veriler = imlec.fetchall()
+
+    # Bağlantıyı kapat
+    baglanti.close()
+    return veriler
