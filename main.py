@@ -185,6 +185,8 @@ def perform_regression_analysis(X, y, max_degree, df_s):
     if top_10_combinations:
         global combo
         combo, _ = top_10_combinations[0]
+ 
+        reg.klasor_islemleri(str(combo))
         termss, r2, mae, y_pred,coeff,intcept,model = reg.generate_polynomial_model(X_train, y_train, combo, max_degree)
         math_model = reg.generate_math_model(termss, coeff, intcept)
         lower_bound, upper_bound = reg.calculate_bootstrap_ci(X_val, y_val)
@@ -257,7 +259,7 @@ def init_session_state():
 init_session_state()
 
 
-def kaydet_ve_ekle(model, model_adi, bagimli_degisken, bagimsiz_degiskenler, model_tipi):
+def kaydet_ve_ekle(model, model_adi, bagimli_degisken, bagimsiz_degiskenler, model_tipi,combo):
     """
     Eğitilmiş regresyon modelini kaydeder ve veritabanına ekler.
 
@@ -288,15 +290,16 @@ def kaydet_ve_ekle(model, model_adi, bagimli_degisken, bagimsiz_degiskenler, mod
             bagimsiz_degiskenler_json TEXT NOT NULL,
             model_tipi TEXT NOT NULL,
             tarih TEXT NOT NULL,
-            dosya_adi TEXT NOT NULL
+            dosya_adi TEXT NOT NULL,
+            combo TEXT NOT NULL
         )
     """)
 
     # Veritabanına ekleme
     cursor.execute("""
-        INSERT INTO model_info (model_adi, bagimli_degisken, bagimsiz_degiskenler_json, model_tipi, tarih, dosya_adi)
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (model_adi, bagimli_degisken, json_str, model_tipi, datetime.datetime.now().strftime("%Y-%m-%d"), f"{model_adi}.pkl"))
+        INSERT INTO model_info (model_adi, bagimli_degisken, bagimsiz_degiskenler_json, model_tipi, tarih, dosya_adi, combo)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (model_adi, bagimli_degisken, json_str, model_tipi, datetime.datetime.now().strftime("%Y-%m-%d"), f"{model_adi}.pkl",combo))
     con.commit()
     con.close()
 
@@ -435,13 +438,20 @@ def main():
             if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
                 st.session_state.buton2_tiklandi = True
                 modell = st.session_state.modell
+                reg.degeri_oku_ve_yazdir()
                 # Check if modell is not None before accessing its attributes
 
 
                 if modell is not None:
+                    combo = None
                     tarih = datetime.datetime.now().strftime("%Y-%m-%d")
                     model_adi = custom_model_adi + "_"+ tarih
-                    kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                    if regression_type == "Polynomial":
+                        combo = reg.degeri_oku_ve_yazdir()
+                    else:
+                        combo = "1"
+
+                    kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type,str(combo))
                     st.session_state.buton1_tiklandi = False
                     
                 else:
