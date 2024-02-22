@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler,PolynomialFeatures
 import streamlit as st
 import os
 import sqlite3
@@ -117,10 +117,58 @@ def evaluate_model_with_cross_validation(model, X, y,df, cv=5):
 
     # Modelin tahmin yapma yeteneğini değerlendir
     predictions = loaded_model.predict(Xs)
+    predictions[predictions < 0] = 0
     input_pred = loaded_model.predict(dfs)
+    input_pred[input_pred < 0] = 0
 
     return mean_r2_score, mean_mae_score, predictions, input_pred
 
+def evaluate_model_with_cross_validation_for_reg(model, X, y, df, indices, cv=5):
+    indices =eval(indices)
+    #Xs, dfs = standardize_data(X, df)
+    # Polynomial özellikleri ekleyin
+    poly_features = PolynomialFeatures(degree=3, include_bias=False)
+    X_poly = poly_features.fit_transform(X)
+    X_poly_user = poly_features.fit_transform(df)
+    
+    # Polynomial özelliklerin sütun isimlerini alın
+    poly_feature_names = poly_features.get_feature_names_out(input_features=X.columns)
+
+    # Modelin indekslerine göre terimleri belirleyin
+    selected_terms = [poly_feature_names[i-1] for i in indices]
+    indices = [i - 1 for i in indices]
+    
+    # Sadece seçilen terimlere sahip yeni bir matris oluşturun
+    selected_X_poly = X_poly[:, indices]
+    selected_X_poly_user = X_poly_user[:, indices]
+
+    loaded_model = load_model_from_records(model)
+    if loaded_model is None:
+        print("model yüklenmedi!!!")
+    # R^2 skoru için scorer oluştur
+    r2_scorer = make_scorer(r2_score)
+    # MAE skoru için scorer oluştur
+    mae_scorer = make_scorer(mean_absolute_error)
+
+    
+    skf = StratifiedKFold(n_splits=cv)
+
+    # Cross-validation ile R^2 ve MAE skorlarını hesapla
+    r2_scores = cross_val_score(loaded_model, selected_X_poly, y, cv=cv, scoring=r2_scorer)
+    mae_scores = cross_val_score(loaded_model, selected_X_poly, y, cv=cv, scoring=mae_scorer)
+    mae = mean_absolute_error(y, loaded_model.predict(selected_X_poly))
+    r2 = r2_score(y, loaded_model.predict(selected_X_poly))
+    
+    # Ortalama skorları al
+    mean_r2_score = np.mean(r2_scores)
+    mean_mae_score = np.mean(mae_scores)
+
+    # Modelin tahmin yapma yeteneğini değerlendir
+    predictions = loaded_model.predict(selected_X_poly)
+    predictions[predictions < 0] = 0
+    input_pred = loaded_model.predict(selected_X_poly_user)
+    input_pred[input_pred < 0] = 0
+    return mean_r2_score, mean_mae_score, predictions, input_pred
 
 def main():
 
@@ -154,6 +202,12 @@ def main():
             st.write("Tarih:")
             st.write(data["tarih"][0])
             st.write("----------")
+            st.write("Kombinasyon:")
+            tuple_deger = data["combo"][0]
+            str_deger = str(tuple_deger)
+            str_deger = str_deger[3:-4]
+            st.write(str_deger)
+            st.write("----------")
 
 
         selected_option = st.radio("Veri Kaynağını Seçin:", ["CSV Dosyası", "Excel Dosyası", "Veritabanı"])
@@ -177,7 +231,16 @@ def main():
                     if st.button("Analizi Gerçekleştir"):
                         data1  = get_model_info(model_adi)
                         model_adi1 = data1["model_adi"][0]+".pkl"
+                        tuple_deger = data1["combo"][0]
+                        str_deger = str(tuple_deger)
+                        indices = str_deger[3:-4]
                         st.success(model_adi1)
+                        # Modeli değerlendirme
+                        if model_tip == "Polynomial":
+                            mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation_for_reg(model_adi1, X, y,df_s,indices)
+                        else:
+                            mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
+                        lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
                         # Modeli değerlendirme
                         mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
                         lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
@@ -230,7 +293,16 @@ def main():
                     if st.button("Analizi Gerçekleştir"):
                         data1  = get_model_info(model_adi)
                         model_adi1 = data1["model_adi"][0]+".pkl"
+                        tuple_deger = data1["combo"][0]
+                        str_deger = str(tuple_deger)
+                        indices = str_deger[3:-4]
                         st.success(model_adi1)
+                        # Modeli değerlendirme
+                        if model_tip == "Polynomial":
+                            mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation_for_reg(model_adi1, X, y,df_s,indices)
+                        else:
+                            mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
+                        lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
                         # Modeli değerlendirme
                         mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
                         lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
@@ -291,9 +363,17 @@ def main():
                 if st.button("Analizi Gerçekleştir"):
                     data1  = get_model_info(model_adi)
                     model_adi1 = data1["model_adi"][0]+".pkl"
+                    model_tip = data1["model_tipi"][0]
+
+                    tuple_deger = data1["combo"][0]
+                    str_deger = str(tuple_deger)
+                    indices = str_deger[3:-4]
                     st.success(model_adi1)
                     # Modeli değerlendirme
-                    mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
+                    if model_tip == "Polynomial":
+                        mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation_for_reg(model_adi1, X, y,df_s,indices)
+                    else:
+                        mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
                     lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
 
                     results_df = pd.DataFrame({
