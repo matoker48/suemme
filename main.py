@@ -270,7 +270,8 @@ def kaydet_ve_ekle(model, model_adi, bagimli_degisken, bagimsiz_degiskenler, mod
         bagimsiz_degiskenler: Bağımsız değişkenlerin bir listesi.
         model_tipi: Regresyon modelinin tipi.
     """
-
+    if not os.path.exists("models"):
+        os.makedirs("models")
     # Kayıt dosyasına kaydetme
     with open(f"records/{model_adi}.pkl", "wb") as f:
         pickle.dump(model, f)
@@ -393,7 +394,12 @@ def main():
                     if modell is not None:
                         tarih = datetime.datetime.now().strftime("%Y-%m-%d")
                         model_adi = custom_model_adi + "_"+ tarih
-                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                        if regression_type == "Polynomial":
+                            combo = reg.degeri_oku_ve_yazdir()
+                        else:
+                            combo = "1"
+
+                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type,str(combo))
                         st.session_state.buton1_tiklandi = False
                     else:
                         st.warning("Modell is not defined. Run analysis first.")
