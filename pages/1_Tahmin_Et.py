@@ -173,9 +173,18 @@ def evaluate_model_with_cross_validation_for_reg(model, X, y, df, indices, cv=5)
 def main():
 
     st.title('SAM Analiz Uygulaması')
+    models_dir = "models"
+    records_dir = "records"
 
-    # Models klasöründeki veritabanlarını listeleme
-    modelss = [file for file in os.listdir("models") if file.endswith(".db")]
+    if not os.listdir(models_dir) and not os.listdir(records_dir):
+        st.error("Model eğitmediniz! Lütfen modelleri eğitin ve tekrar deneyin.")
+        st.info("5 saniye sonra ana sayfaya yönlendirileceksiniz.")
+        time.sleep(5)
+        st.experimental_rerun()
+    else:
+
+        # Models klasöründeki veritabanlarını listeleme
+        modelss = [file for file in os.listdir("models") if file.endswith(".db")]
 
     # Açılır menü oluşturma
     global model_adi
