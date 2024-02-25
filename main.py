@@ -364,7 +364,11 @@ def main():
                     if modell is not None:
                         tarih = datetime.datetime.now().strftime("%Y-%m-%d")
                         model_adi = custom_model_adi + "_"+ tarih
-                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                        if regression_type == "Polynomial":
+                            combo = reg.degeri_oku_ve_yazdir()
+                        else:
+                            combo = "1"
+                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type,str(combo))
                         st.session_state.buton1_tiklandi = False
                     else:
                         st.warning("Modell is not defined. Run analysis first.")
@@ -400,15 +404,19 @@ def main():
 
                     perform_analysis_and_update_session_state(regression_type, X, y, max_degree, df_s)
                     st.session_state.buton1_tiklandi = True
-                custom_model_adi = st.text_input("")
-                if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
+                #custom_model_adi = st.text_input("")
+                #if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
                     st.session_state.buton2_tiklandi = True
                     modell = st.session_state.modell
                     # Check if modell is not None before accessing its attributes
                     if modell is not None:
                         tarih = datetime.datetime.now().strftime("%Y-%m-%d")
-                        model_adi = custom_model_adi + "_"+ tarih
-                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type)
+                        model_adi = regression_type+str(selected_independent_variables) + "_"+ tarih
+                        if regression_type == "Polynomial":
+                            combo = reg.degeri_oku_ve_yazdir()
+                        else:
+                            combo = "1"
+                        kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type,str(combo))
                         st.session_state.buton1_tiklandi = False
                     else:
                         st.warning("Modell is not defined. Run analysis first.")
@@ -449,29 +457,36 @@ def main():
 
 
             # Kullanıcıdan model adını girmesini iste
-            custom_model_adi = st.text_input("")
-            if st.session_state.buton1_tiklandi and st.button("Modeli kaydet"):
-                st.session_state.buton2_tiklandi = True
-                modell = st.session_state.modell
-                reg.degeri_oku_ve_yazdir()
-                # Check if modell is not None before accessing its attributes
+            if st.session_state.buton1_tiklandi:
+                st.header("Model Kaydedilsin mi?")
+                secenek = st.radio("", ("Evet", "Hayır"), index=1)
 
 
-                if modell is not None:
-                    combo = None
-                    tarih = datetime.datetime.now().strftime("%Y-%m-%d")
-                    model_adi = custom_model_adi + "_"+ tarih
-                    if regression_type == "Polynomial":
-                        combo = reg.degeri_oku_ve_yazdir()
-                    else:
-                        combo = "1"
+                if secenek == "Evet":
+                    custom_model_adi = st.text_input("Model Adı:")
+                    if st.button("Modeli kaydet"):
+                        st.session_state.buton2_tiklandi = True
+                        modell = st.session_state.modell
+                        reg.degeri_oku_ve_yazdir()
+                        # Check if modell is not None before accessing its attributes
 
-                    kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type,str(combo))
-                    st.session_state.buton1_tiklandi = False
-                    
-                else:
-                    st.warning("Modell is not defined. Run analysis first.")
-                    st.session_state.buton1_tiklandi = False
+
+                        if modell is not None:
+                            combo = None
+                            tarih = datetime.datetime.now().strftime("%Y-%m-%d")
+                            
+                            model_adi = custom_model_adi + "_"+ tarih
+                            if regression_type == "Polynomial":
+                                combo = reg.degeri_oku_ve_yazdir()
+                            else:
+                                combo = "1"
+
+                            kaydet_ve_ekle(modell, model_adi, dependent_variable, selected_independent_variables, regression_type,str(combo))
+                            st.session_state.buton1_tiklandi = False
+                            
+                        else:
+                            st.warning("Modell is not defined. Run analysis first.")
+                            st.session_state.buton1_tiklandi = False
         conn.close()
 if __name__ == "__main__":
     main()
