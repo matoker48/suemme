@@ -173,6 +173,7 @@ def evaluate_model_with_cross_validation_for_reg(model, X, y, df, indices, cv=5)
 def main():
 
     st.title('SAM Analiz Uygulaması')
+    
 
     # Models klasöründeki veritabanlarını listeleme
     modelss = [file for file in os.listdir("models") if file.endswith(".db")]
@@ -231,18 +232,18 @@ def main():
                     if st.button("Analizi Gerçekleştir"):
                         data1  = get_model_info(model_adi)
                         model_adi1 = data1["model_adi"][0]+".pkl"
+                        model_tip = data1["model_tipi"][0]
+
                         tuple_deger = data1["combo"][0]
                         str_deger = str(tuple_deger)
                         indices = str_deger[3:-4]
                         st.success(model_adi1)
                         # Modeli değerlendirme
+                        # Modeli değerlendirme
                         if model_tip == "Polynomial":
                             mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation_for_reg(model_adi1, X, y,df_s,indices)
                         else:
                             mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
-                        lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
-                        # Modeli değerlendirme
-                        mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
                         lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
 
                         results_df = pd.DataFrame({
@@ -260,7 +261,8 @@ def main():
                         st.write("Tahmin Değeri:", f"{y_pred_df[0]:.4f}")
                         st.markdown("<hr>", unsafe_allow_html=True)
                         with st.expander("Detaylar"):
-                            st.write(f"Ortalama Skor: {mean_r2}")
+
+                            st.write(f"Ortalama  Skor: {mean_r2}")
                             st.markdown("<hr>", unsafe_allow_html=True)
 
                             st.write(f"Ortalama MAE Skoru: {mean_mae}")
@@ -293,6 +295,8 @@ def main():
                     if st.button("Analizi Gerçekleştir"):
                         data1  = get_model_info(model_adi)
                         model_adi1 = data1["model_adi"][0]+".pkl"
+                        model_tip = data1["model_tipi"][0]
+
                         tuple_deger = data1["combo"][0]
                         str_deger = str(tuple_deger)
                         indices = str_deger[3:-4]
@@ -302,9 +306,6 @@ def main():
                             mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation_for_reg(model_adi1, X, y,df_s,indices)
                         else:
                             mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
-                        lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
-                        # Modeli değerlendirme
-                        mean_r2, mean_mae, predictions, y_pred_df = evaluate_model_with_cross_validation(model_adi1, X, y,df_s)
                         lower_bound, upper_bound = reg.calculate_bootstrap_ci(X, y)
 
                         results_df = pd.DataFrame({
@@ -322,6 +323,7 @@ def main():
                         st.write("Tahmin Değeri:", f"{y_pred_df[0]:.4f}")
                         st.markdown("<hr>", unsafe_allow_html=True)
                         with st.expander("Detaylar"):
+
                             st.write(f"Ortalama  Skor: {mean_r2}")
                             st.markdown("<hr>", unsafe_allow_html=True)
 
