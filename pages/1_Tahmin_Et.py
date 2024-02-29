@@ -117,7 +117,7 @@ def evaluate_model_with_cross_validation(model, X, y,df, cv=5):
 
     # Modelin tahmin yapma yeteneğini değerlendir
     predictions = loaded_model.predict(Xs)
-    predictions[predictions < 0] = 0
+    #predictions[predictions < 0] = 0
     input_pred = loaded_model.predict(dfs)
     input_pred[input_pred < 0] = 0
 
@@ -165,7 +165,7 @@ def evaluate_model_with_cross_validation_for_reg(model, X, y, df, indices, cv=5)
 
     # Modelin tahmin yapma yeteneğini değerlendir
     predictions = loaded_model.predict(selected_X_poly)
-    predictions[predictions < 0] = 0
+    #predictions[predictions < 0] = 0
     input_pred = loaded_model.predict(selected_X_poly_user)
     input_pred[input_pred < 0] = 0
     return mean_r2_score, mean_mae_score, predictions, input_pred
