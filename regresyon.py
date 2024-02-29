@@ -209,7 +209,7 @@ def make_prediction(X, y, indices, degree, user_input):
     # Tahminleri alın
     y_pred = model.predict(selected_X_poly_user)
     # Negatif değerleri sıfıra dönüştür
-    #y_pred[y_pred < 0] = 0
+    y_pred[y_pred < 0] = 0
 
     return y_pred
 
