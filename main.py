@@ -72,29 +72,7 @@ def perform_svr_analysis(X, y ):
     model_tipi = "SVR"
     r2_degeri = f"{r2_val:.4f}"
     modeller1[model_tipi] = r2_degeri
-
-    results_df = pd.DataFrame({
-            "Bağımlı Değişken": y_val.values,
-            "lower_bound": lower_bound,
-            "Tahmin Değerleri": y_pred_val,
-            "upper_bound": upper_bound,
-        })
-
-    for col in X.columns:
-        results_df[f"{col}"] = X_val[col].values
-
-
-    with st.expander("Detaylar"):
-        st.write("R$^2$:", f"{r2_val:.4f}")
-        st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.write("Mean Absolute Error:",f"{mae_val:.4f}" )
-        st.markdown("<hr>", unsafe_allow_html=True)
-        st.dataframe(results_df)
-        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
         
-
-
     return model
 # Add Random Forest function call here
 def perform_random_forest_analysis(X, y):
@@ -116,27 +94,6 @@ def perform_random_forest_analysis(X, y):
     model_tipi = "Random Forest"
     r2_degeri = f"{r2_val:.4f}"
     modeller1[model_tipi] = r2_degeri
-
-    results_df = pd.DataFrame({
-            "Bağımlı Değişken": y_val.values,
-            "lower_bound": lower_bound,
-            "Tahmin Değerleri": y_pred_val,
-            "upper_bound": upper_bound,
-        })
-
-    for col in X_val.columns:
-        results_df[f"{col}"] = X_val[col].values
-
-
-    with st.expander("Detaylar"):
-        st.write("R$^2$:", f"{r2_val:.4f}")
-        st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.write("Mean Absolute Error:",f"{mae_val:.4f}" )
-        st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.dataframe(results_df)
-        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
 
     return model   
 
@@ -160,31 +117,10 @@ def perform_decision_tree_analysis(X, y):
     r2_degeri = f"{r2_val:.4f}"
     modeller1[model_tipi] = r2_degeri
 
-    results_df = pd.DataFrame({
-            "Bağımlı Değişken": y_val.values,
-            "lower_bound": lower_bound,
-            "Tahmin Değerleri": y_pred_val,
-            "upper_bound": upper_bound,
-        })
-
-    for col in X.columns:
-        results_df[f"{col}"] = X_val[col].values
-
-    
-
-    with st.expander("Detaylar"):
-        st.write("R$^2$:", f"{r2_val:.4f}")
-        st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.write("Mean Absolute Error:",f"{mae_val:.4f}" )
-        st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.dataframe(results_df)
-        reg.plot_prediction_with_ci(y_val, y_pred_val, lower_bound, upper_bound)
-
     return model
 
 def perform_regression_analysis(X, y, max_degree):
+    st.write("Performing Polynomial regression Analysis")
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.3, random_state=42)
     X_trains, X_vals = standardize_data(X_train, X_val)
     start_time = time.time()
@@ -205,9 +141,7 @@ def perform_regression_analysis(X, y, max_degree):
 
     else:
         st.warning("Lütfen analiz yapmak için geçerli bir dosya seçin.")
-    end_time = time.time()
-    elapsed_time = end_time - start_time
-    st.write(f"Elapsed Time: {elapsed_time} seconds")
+
     return model
 
 def choice_the_model(regression_type,X, y, max_degree):
@@ -283,7 +217,7 @@ def kaydet_ve_ekle(model, model_adi, bagimli_degisken, bagimsiz_degiskenler, mod
 
     # Mesaj
     st.success(f"Model başarıyla kaydedildi: {model_adi}.pkl")
-    st.success(f"Veritabanına başarıyla eklendi: {model_adi}")
+
 
 
 
@@ -344,17 +278,15 @@ def main():
                     else:
                         st.warning("Modell is not defined. Run analysis first.")
 
-                for model_tipi, r2_degeri in modeller1.items():
-                    st.write(f"{model_tipi}: {r2_degeri}")
-                en_yuksek_r2 = 0
 
+                en_yuksek_r2 = 0
                 # En yüksek r2 değerine sahip model tipini bul
                 en_iyi_model_tipi = None
                 for model_tipi, r2_degeri in modeller1.items():
                     if float(r2_degeri) > float(en_yuksek_r2):
                         en_yuksek_r2 = r2_degeri
                         en_iyi_model_tipi = model_tipi
-                st.success(f"Mevcut modellerimiz arasında {en_iyi_model_tipi}: {en_yuksek_r2} ile en iyi performansı göstermektedir.")
+                st.success(f"Mevcut modellerimiz arasında **{en_iyi_model_tipi}**: {en_yuksek_r2} ile en iyi performansı göstermektedir.")
 
 
     elif selected_option == "Excel Dosyası":
@@ -408,6 +340,16 @@ def main():
 
                         else:
                             st.warning("Modell is not defined. Run analysis first.")
+                    
+                    en_yuksek_r2 = 0
+                    # En yüksek r2 değerine sahip model tipini bul
+                    en_iyi_model_tipi = None
+                    for model_tipi, r2_degeri in modeller1.items():
+                        if float(r2_degeri) > float(en_yuksek_r2):
+                            en_yuksek_r2 = r2_degeri
+                            en_iyi_model_tipi = model_tipi
+                    st.success(f"Mevcut modellerimiz arasında **{en_iyi_model_tipi}**: {en_yuksek_r2} ile en iyi performansı göstermektedir.")
+
 
                 
 
@@ -472,6 +414,16 @@ def main():
 
                     else:
                         st.warning("Modell is not defined. Run analysis first.")
+                
+                en_yuksek_r2 = 0
+                # En yüksek r2 değerine sahip model tipini bul
+                en_iyi_model_tipi = None
+                for model_tipi, r2_degeri in modeller1.items():
+                    if float(r2_degeri) > float(en_yuksek_r2):
+                        en_yuksek_r2 = r2_degeri
+                        en_iyi_model_tipi = model_tipi
+                st.success(f"Mevcut modellerimiz arasında **{en_iyi_model_tipi}**: {en_yuksek_r2} ile en iyi performansı göstermektedir.")
+
                     
 
         conn.close()
